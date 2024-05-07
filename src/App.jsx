@@ -9,6 +9,7 @@ const QUESTIONS_AMOUNT = 5
 const fetchUrl = `https://opentdb.com/api.php?amount=${QUESTIONS_AMOUNT}&type=multiple`
 
 export default function App() {
+  const [startQuiz, setStartQuiz] = useState(false)
   const [questionObjects, setQuestionObjects] = useState([])
   const [selectedAnswersArr, setSelectedAnswersArr] = useState([])
   const [checked, setChecked] = useState(false)
@@ -118,6 +119,7 @@ export default function App() {
   }
 
   function playAgain() {
+    setStartQuiz(false)
     setQuestionObjects([])
     setSelectedAnswersArr([])
     setChecked(false)
@@ -144,16 +146,29 @@ export default function App() {
     handleClick: checked ? playAgain : checkAnswers,
   }
 
-  return (
-    <section>
-      {questionElements}
-      {showWarning && <p>Answer all the questions</p>}
-      {checked && (
-        <p>
-          {correctAnswers}/{QUESTIONS_AMOUNT} correct answers
-        </p>
-      )}
-      <button onClick={buttonObj.handleClick}>{buttonObj.text}</button>
-    </section>
-  )
+  function getPage() {
+    if (startQuiz) {
+      return (
+        <main>
+          {questionElements}
+          {showWarning && <p>Answer all the questions</p>}
+          {checked && (
+            <p>
+              {correctAnswers}/{QUESTIONS_AMOUNT} correct answers
+            </p>
+          )}
+          <button onClick={buttonObj.handleClick}>{buttonObj.text}</button>
+        </main>
+      )
+    } else {
+      return (
+        <main>
+          <h1>Quizzical</h1>
+          <button onClick={() => setStartQuiz(true)}>Start quiz</button>
+        </main>
+      )
+    }
+  }
+
+  return getPage()
 }
