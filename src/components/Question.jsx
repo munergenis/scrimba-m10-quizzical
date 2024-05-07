@@ -1,4 +1,4 @@
-export default function Question({ id, question, answers, handleClick }) {
+export default function Question({ question, answers, handleClick }) {
   return (
     <div>
       <h2>{question}</h2>

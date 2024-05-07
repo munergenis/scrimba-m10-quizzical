@@ -130,7 +130,6 @@ export default function App() {
     return (
       <Question
         key={id}
-        id={id}
         question={question}
         answers={answers}
         handleClick={toggleSelected}
