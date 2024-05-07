@@ -134,6 +134,7 @@ export default function App() {
         question={question}
         answers={answers}
         handleClick={toggleSelected}
+        checked={checked}
       />
     )
   })
