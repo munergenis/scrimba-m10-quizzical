@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { nanoid } from "nanoid"
 import { decode } from "html-entities"
+import arrayShuffle from "array-shuffle"
 import "./App.css"
 import Question from "./components/Question"
 
@@ -46,9 +47,7 @@ export default function App() {
               isSelected: false,
             }
 
-            question.answers = [...answers, correctAnswer]
-
-            // TODO: SHUFFLE ANSWERS
+            question.answers = arrayShuffle([...answers, correctAnswer])
 
             return question
           })
@@ -57,6 +56,8 @@ export default function App() {
   }
 
   function toggleSelected(id, questionID) {
+    if (checked) return
+
     const targetQuestion = questionObjects.find(
       (question) => question.id === questionID
     )
