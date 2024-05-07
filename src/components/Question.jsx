@@ -2,11 +2,14 @@ export default function Question({ id, question, answers, handleClick }) {
   return (
     <div>
       <h2>{question}</h2>
-      {answers.map(({ id, value, isSelected }) => (
+
+      {/* TODO: EXPORT ANSWERS TO OWN COMPONENT */}
+
+      {answers.map(({ id, questionID, value, isSelected }) => (
         <p
           className={isSelected ? "selected" : undefined}
           key={id}
-          onClick={() => handleClick(id)}
+          onClick={() => handleClick(id, questionID)}
         >
           {value}
         </p>

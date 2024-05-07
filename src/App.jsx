@@ -4,48 +4,83 @@ import { decode } from "html-entities"
 import "./App.css"
 import Question from "./components/Question"
 
+const QUESTIONS_AMOUNT = 5
+const fetchUrl = `https://opentdb.com/api.php?amount=${QUESTIONS_AMOUNT}&type=multiple`
+
 export default function App() {
   const [questionObjects, setQuestionObjects] = useState([])
+  const [selectedAnswersArr, setSelectedAnswersArr] = useState([])
+  const [checked, setChecked] = useState(false)
+  const [showWarning, setShowWarning] = useState(false)
+  const [correctAnswers, setCorrectAnswers] = useState(0)
 
   useEffect(() => {
-    fetch("https://opentdb.com/api.php?amount=5&type=multiple")
+    fetchData()
+  }, [])
+
+  function fetchData() {
+    fetch(fetchUrl)
       .then((resp) => resp.json())
       .then((data) => {
         setQuestionObjects(
           data.results.map((entry) => {
+            const question = {
+              id: nanoid(),
+              question: decode(entry.question),
+              answers: [],
+            }
+
             const answers = entry.incorrect_answers.map((answer) => ({
+              questionID: question.id,
               id: nanoid(),
               value: decode(answer),
               isCorrect: false,
               isSelected: false,
             }))
 
-            answers.push({
+            const correctAnswer = {
+              questionID: question.id,
               id: nanoid(),
               value: decode(entry.correct_answer),
               isCorrect: true,
               isSelected: false,
-            })
-
-            return {
-              id: nanoid(),
-              question: decode(entry.question),
-              answers: answers,
             }
+
+            question.answers = [...answers, correctAnswer]
+
+            // TODO: SHUFFLE ANSWERS
+
+            return question
           })
         )
       })
-  }, [])
+  }
 
-  function toggleSelected(id) {
-    const targetQuestion = questionObjects.find((question) =>
-      question.answers.some((answer) => answer.id === id)
+  function toggleSelected(id, questionID) {
+    const targetQuestion = questionObjects.find(
+      (question) => question.id === questionID
     )
+
     const targetAnswer = targetQuestion.answers.find(
       (answer) => answer.id === id
     )
 
     if (targetAnswer.isSelected) return
+
+    setSelectedAnswersArr((prevSelAnswArr) => {
+      const isQuestionAnswered = prevSelAnswArr.some(
+        (answer) => answer.questionID === questionID
+      )
+      let newSelAnswArr
+      if (isQuestionAnswered) {
+        newSelAnswArr = prevSelAnswArr.map((selAns) =>
+          selAns.questionID === questionID ? targetAnswer : selAns
+        )
+      } else {
+        newSelAnswArr = [...prevSelAnswArr, targetAnswer]
+      }
+      return newSelAnswArr
+    })
 
     setQuestionObjects((prevQuestionObj) => {
       const newQuestionObj = prevQuestionObj.map((question) => {
@@ -66,6 +101,31 @@ export default function App() {
     })
   }
 
+  function checkAnswers() {
+    if (selectedAnswersArr.length < QUESTIONS_AMOUNT) {
+      !showWarning && setShowWarning(true)
+    } else {
+      showWarning && setShowWarning(false)
+      let correctAnswCount = correctAnswers
+      for (const answer of selectedAnswersArr) {
+        answer.isCorrect && correctAnswCount++
+      }
+      setCorrectAnswers(correctAnswCount)
+
+      setChecked(true)
+    }
+  }
+
+  function playAgain() {
+    setQuestionObjects([])
+    setSelectedAnswersArr([])
+    setChecked(false)
+    setShowWarning(false)
+    setCorrectAnswers(0)
+
+    fetchData()
+  }
+
   const questionElements = questionObjects.map(({ id, question, answers }) => {
     return (
       <Question
@@ -78,5 +138,21 @@ export default function App() {
     )
   })
 
-  return <section>{questionElements}</section>
+  const buttonObj = {
+    text: checked ? "Play again" : "Check answers",
+    handleClick: checked ? playAgain : checkAnswers,
+  }
+
+  return (
+    <section>
+      {questionElements}
+      {showWarning && <p>Answer all the questions</p>}
+      {checked && (
+        <p>
+          {correctAnswers}/{QUESTIONS_AMOUNT} correct answers
+        </p>
+      )}
+      <button onClick={buttonObj.handleClick}>{buttonObj.text}</button>
+    </section>
+  )
 }
